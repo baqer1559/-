@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>مشغل البث المباشر</title>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
+    <style>
+        body {
+            background: #000;
+            margin: 0;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <video id="secure-player" class="video-js vjs-default-skin" controls playsinline width="100%" height="auto"></video>
+
+    <!-- Video.js Library -->
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    
+    <!-- HLS Plugin for Streaming -->
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@5.15.0/dist/videojs-contrib-hls.min.js"></script>
+
+    <script>
+        // =============== الحماية الأولى: التشفير الديناميكي ===============
+        const encryptedParts = [
+            "aHR0cDovL", // الجزء 1
+            "2Jlc3RyMT", // الجزء 2 
+            "EubGV2ZWx", // الجزء 3
+            "kdmIuY29t", // الجزء 4
+            "L2xpdmUvN", // الجزء 5
+            "DMzNjgyXy", // الجزء 6
+            "5tM3U4"      // الجزء 7
+        ];
+
+        // دالة فك التشفير الذكي
+        function decryptStreamURL() {
+            const timestamp = Date.now();
+            const dynamicKey = Math.floor(timestamp / 100000).toString(16);
+            const rawURL = encryptedParts.join('') + dynamicKey;
+            return atob(rawURL) + "?t=" + timestamp; // إضافة بارامتر زمني
+        }
+
+        // =============== الحماية الثانية: منع أدوات المطورين ===============
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+                videojs.log.error('مح��ولة اختراق مرفوضة!');
+                window.location.reload();
+            }
+        });
+
+        // =============== تهيئة المشغل مع طبقة حماية إضافية ===============
+        const player = videojs('secure-player', {
+            html5: {
+                hls: {
+                    overrideNative: true
+                }
+            },
+            sources: [{
+                src: decryptStreamURL(),
+                type: 'application/x-mpegURL'
+            }]
+        });
+
+        // تحديث الرابط كل 30 ثانية لمنع السرقة
+        setInterval(() => {
+            player.src({ src: decryptStreamURL(), type: 'application/x-mpegURL' });
+        }, 30000);
+    </script>
+</body>
+</html>
